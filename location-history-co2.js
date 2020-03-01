@@ -28,22 +28,20 @@ async function handleZipFile(f) {
 
     const activities = [];
 
-    let zip = await JSZip.loadAsync(f);
-    zip.forEach(async (relativePath, zipEntry) => {
-        // we only want to process files of the type: "Takeout/Location History/Semantic Location History/2019/2019_AUGUST.json"
-        // we do not want "Takeout/Location History/Location History.json" or any other .json file in potenrial other folders
-        if(zipEntry.name.match(/^Takeout\/Location History\/Semantic Location History\/.*\.json$/)) {
-            console.log(`Parsing ${zipEntry.name}`);
-            const fileContent = await zip.file(zipEntry.name).async("string");
-            parseActivities(JSON.parse(fileContent), activities);
-        }
-    });
+    const zip = await JSZip.loadAsync(f);
 
-    // TODO: ensure activities is populated before calling
+    // we only want to process files of the type: "Takeout/Location History/Semantic Location History/2019/2019_AUGUST.json"
+    // we do not want "Takeout/Location History/Location History.json" or any other .json file in potenrial other folders
+    const files = zip.file(/^Takeout\/Location History\/Semantic Location History\/.*\.json$/);
+    const fileContents = await Promise.all( files.map(f => f.async("string")) );
+
+    fileContents.forEach(fileContent => parseActivities(JSON.parse(fileContent), activities));
+
     printResults(activities);
 }
 
 function printResults(activities) {
+    console.log(`Found ${activities.length} activities`);
     console.log(activities);
 }
 
