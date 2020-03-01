@@ -1,3 +1,6 @@
+const ACTIVITY_TYPE_TRANSPORTATION = 'ACTIVITY_TYPE_TRANSPORTATION';
+const TRANSPORTATION_MODE_PLANE = 'TRANSPORTATION_MODE_PLANE';
+
 /**
  * Parse a location history 
  * @param {Array} history: the parsed content of a semantinc activity location history file  
@@ -10,11 +13,12 @@ function parseActivities(history, parsedActivities) {
         const activitySegment = timelineObject.activitySegment;
         if(activitySegment && activitySegment.activityType === 'FLYING') {
             const activity = {
-                activityType : activitySegment.activityType,
-                distance: activitySegment.distance,
-                startLocation: activitySegment.startLocation,
-                endLocation: activitySegment.endLocation,
-                duration: activitySegment.duration,
+                id: activitySegment.duration.startTimestampMs,
+                datetime: new Date(parseInt(activitySegment.duration.startTimestampMs, 10)),
+                durationHours: (activitySegment.duration.endTimestampMs - activitySegment.duration.startTimestampMs) / (1000 * 60 * 60),
+                distanceKilometers: activitySegment.distance / 1000,
+                activityType: ACTIVITY_TYPE_TRANSPORTATION,
+                transportationMode: TRANSPORTATION_MODE_PLANE,
             };
             parsedActivities.push(activity);
         }
@@ -47,6 +51,6 @@ function printResults(activities) {
 
 document.getElementById("zip-select").addEventListener('change', (event) => {
     if(event.target.files) {
-        handleZipFile(event.target.files[0])
+        handleZipFile(event.target.files[0]);
     }
 });
